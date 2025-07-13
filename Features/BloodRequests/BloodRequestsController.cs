@@ -19,6 +19,7 @@ public class BloodRequestsController : ControllerBase
 
     [HttpPost]
     [Authorize]
+    // [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Staff)}")]
     public async Task<IActionResult> CreateRequest([FromBody] CreateRequestDto dto)
     {
         var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -89,7 +90,7 @@ public class BloodRequestsController : ControllerBase
         catch (BadHttpRequestException ex) { return BadRequest(new { message = ex.Message }); }
     }
 
-    // ==> API ENDPOINT MỚI
+
     [HttpPatch("{id}/fulfill")]
     [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Staff)}")]
     public async Task<IActionResult> FulfillRequest(int id)
@@ -105,6 +106,43 @@ public class BloodRequestsController : ControllerBase
             return Ok(result);
         }
         catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (BadHttpRequestException ex) { return BadRequest(new { message = ex.Message }); }
+    }
+
+    [HttpGet("me")]
+    [Authorize] // Bất kỳ ai đăng nhập cũng có thể xem yêu cầu của mình
+    public async Task<IActionResult> GetMyRequests()
+    {
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out var userId))
+        {
+            return Unauthorized("Token không hợp lệ.");
+        }
+
+        var requests = await _requestService.GetMyRequestsAsync(userId);
+        return Ok(requests);
+    }
+
+    /// <summary>
+    /// Người dùng tự hủy một yêu cầu máu.
+    /// </summary>
+    [HttpPatch("{id}/cancel")]
+    [Authorize] // Bất kỳ ai đăng nhập cũng có thể gọi, logic bảo mật ở service
+    public async Task<IActionResult> CancelRequest(int id)
+    {
+        try
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized("Token không hợp lệ.");
+            }
+
+            var result = await _requestService.CancelRequestAsync(id, userId);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (UnauthorizedAccessException) { return Forbid(); } // Trả về 403 Forbidden
         catch (BadHttpRequestException ex) { return BadRequest(new { message = ex.Message }); }
     }
 }

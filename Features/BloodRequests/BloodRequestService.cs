@@ -3,6 +3,7 @@ using BloodDonationBE.Data;
 using BloodDonationBE.Features.BloodRequests.DTOs;
 using BloodDonationBE.Common.Enums;
 using BloodDonationBE.Features.Users;
+using BloodDonationBE.Features.BloodUnits;
 
 namespace BloodDonationBE.Features.BloodRequests;
 
@@ -106,7 +107,6 @@ public class BloodRequestService : IBloodRequestService
 
         if (unitsToFulfill.Count < request.Quantity)
         {
-            // Trường hợp hy hữu: kho đã thay đổi sau khi duyệt.
             throw new BadHttpRequestException("Số lượng máu trong kho không còn đủ để hoàn thành yêu cầu.");
         }
 
@@ -135,6 +135,41 @@ public class BloodRequestService : IBloodRequestService
     public async Task<RequestResponseDto> GetRequestByIdAsync(int id)
     {
         var request = await FindRequestEntityByIdAsync(id);
+        return RequestResponseDto.FromEntity(request);
+    }
+
+    public async Task<IEnumerable<RequestResponseDto>> GetMyRequestsAsync(int userId)
+    {
+        var requests = await _context.BloodRequests
+            .Where(r => r.RequestingUserId == userId)
+            .Include(r => r.Hospital)
+            .Include(r => r.RequestingUser)
+            .Include(r => r.VerifyingStaff)
+            .Include(r => r.ApprovingAdmin)
+            .OrderByDescending(r => r.CreatedAt)
+            .ToListAsync();
+
+        return requests.Select(RequestResponseDto.FromEntity);
+    }
+
+    public async Task<RequestResponseDto> CancelRequestAsync(int requestId, int userId)
+    {
+        var request = await FindRequestEntityByIdAsync(requestId);
+
+        if (request.RequestingUserId != userId)
+        {
+            throw new UnauthorizedAccessException("Bạn không có quyền hủy yêu cầu này.");
+        }
+
+        if (request.Status == BloodRequestStatus.Fulfilled || request.Status == BloodRequestStatus.Rejected)
+        {
+            throw new BadHttpRequestException($"Không thể hủy yêu cầu ở trạng thái '{request.Status}'.");
+        }
+
+        request.Status = BloodRequestStatus.Rejected;
+        request.VerifiedAt = DateTime.UtcNow; // Ghi nhận thời điểm hành động
+
+        await _context.SaveChangesAsync();
         return RequestResponseDto.FromEntity(request);
     }
 

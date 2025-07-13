@@ -45,7 +45,7 @@ public class CampaignRegistrationService : ICampaignRegistrationService
             .Include(r => r.User)
             .Include(r => r.Campaign)
             .FirstAsync(r => r.Id == newRegistration.Id);
-            
+
         return RegistrationResponseDto.FromEntity(created);
     }
 
@@ -107,7 +107,7 @@ public class CampaignRegistrationService : ICampaignRegistrationService
         }
 
         await _context.SaveChangesAsync();
-        
+
         // Load lại campaign để đảm bảo dữ liệu mới nhất
         await _context.Entry(registration).Reference(r => r.Campaign).LoadAsync();
 
@@ -127,5 +127,48 @@ public class CampaignRegistrationService : ICampaignRegistrationService
                 Location = r.Campaign.Address
             })
             .ToListAsync();
+    }
+    
+    public async Task<IEnumerable<RegistrationResponseDto>> GetMyRegistrationsAsync(int userId)
+    {
+        var registrations = await _context.CampaignRegistrations
+            .Where(r => r.UserId == userId)
+            .Include(r => r.User)
+            .Include(r => r.Campaign)
+            .OrderByDescending(r => r.Campaign.ActiveTime)
+            .ToListAsync();
+
+        return registrations.Select(RegistrationResponseDto.FromEntity);
+    }
+
+    public async Task<RegistrationResponseDto> CancelRegistrationAsync(int registrationId, int userId)
+    {
+        var registration = await _context.CampaignRegistrations
+            .Include(r => r.User)
+            .Include(r => r.Campaign)
+            .FirstOrDefaultAsync(r => r.Id == registrationId);
+
+        if (registration == null)
+        {
+            throw new KeyNotFoundException("Không tìm thấy lượt đăng ký.");
+        }
+
+        // Kiểm tra bảo mật: Đảm bảo người dùng chỉ có thể hủy đăng ký của chính mình
+        if (registration.UserId != userId)
+        {
+            throw new UnauthorizedAccessException("Bạn không có quyền hủy lượt đăng ký này.");
+        }
+
+        // Kiểm tra xem có thể hủy được không (ví dụ: không thể hủy khi đã hoàn thành)
+        if (registration.Status == RegistrationStatus.Completed || registration.Status == RegistrationStatus.Cancelled)
+        {
+            throw new BadHttpRequestException($"Không thể hủy lượt đăng ký ở trạng thái '{registration.Status}'.");
+        }
+
+        registration.Status = RegistrationStatus.Cancelled;
+        registration.Note = "Người dùng tự hủy.";
+
+        await _context.SaveChangesAsync();
+        return RegistrationResponseDto.FromEntity(registration);
     }
 }

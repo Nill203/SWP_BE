@@ -19,4 +19,6 @@ public interface IBloodRequestService
     Task<IEnumerable<RequestResponseDto>> GetAllRequestsAsync();
 
     Task<RequestResponseDto> GetRequestByIdAsync(int id);
+    Task<IEnumerable<RequestResponseDto>> GetMyRequestsAsync(int userId);
+    Task<RequestResponseDto> CancelRequestAsync(int requestId, int userId);
 }

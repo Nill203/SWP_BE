@@ -80,7 +80,7 @@ public class UsersController : ControllerBase
         var user = await _userService.GetUserByIdAsync(userId);
         return Ok(user);
     }
-    
+
     [HttpPut("me")]
     [Authorize]
     public async Task<IActionResult> UpdateCurrentUser([FromBody] UserUpdateDto dto)
@@ -94,6 +94,21 @@ public class UsersController : ControllerBase
 
         var updatedUser = await _userService.UpdateUserAsync(userId, dto);
         return Ok(updatedUser);
+    }
+
+    [HttpPut("{id}")]
+    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Staff)}")]
+    public async Task<IActionResult> UpdateUserByAdmin(int id, [FromBody] UserUpdateDto dto)
+    {
+        try
+        {
+            var updatedUser = await _userService.UpdateUserAsync(id, dto);
+            return Ok(updatedUser);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
     }
 
 
@@ -121,7 +136,7 @@ public class UsersController : ControllerBase
             return NotFound(new { message = ex.Message });
         }
     }
-    
+
     [HttpPost("admin/create")]
     [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Staff)}")]
     public async Task<IActionResult> CreateByAdmin([FromBody] AdminCreateUserDto dto)
@@ -129,7 +144,7 @@ public class UsersController : ControllerBase
         var user = await _userService.CreateByAdminAsync(dto);
         return CreatedAtAction(nameof(GetUserById), new { id = user.UserId }, user);
     }
-    
+
     [HttpDelete("{id}")]
     [Authorize(Roles = nameof(UserRole.Admin))] // Chỉ Admin
     public async Task<IActionResult> DeleteUser(int id)

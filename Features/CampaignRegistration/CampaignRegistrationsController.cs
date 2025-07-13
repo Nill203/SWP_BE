@@ -113,4 +113,44 @@ public class CampaignRegistrationsController : ControllerBase
         var history = await _registrationService.GetDonationHistoryByUserIdAsync(userId);
         return Ok(history);
     }
+
+       /// <summary>
+    /// Lấy danh sách các sự kiện mà người dùng hiện tại đã đăng ký.
+    /// </summary>
+    [HttpGet("me")]
+    [Authorize] // Bất kỳ ai đăng nhập cũng có thể xem đăng ký của mình
+    public async Task<IActionResult> GetMyRegistrations()
+    {
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out var userId))
+        {
+            return Unauthorized("Token không hợp lệ.");
+        }
+
+        var registrations = await _registrationService.GetMyRegistrationsAsync(userId);
+        return Ok(registrations);
+    }
+
+    /// <summary>
+    /// Người dùng tự hủy một lượt đăng ký.
+    /// </summary>
+    [HttpPatch("{id}/cancel")]
+    [Authorize]
+    public async Task<IActionResult> CancelRegistration(int id)
+    {
+        try
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized("Token không hợp lệ.");
+            }
+
+            var result = await _registrationService.CancelRegistrationAsync(id, userId);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (UnauthorizedAccessException ex) { return Forbid(); } // Trả về 403 Forbidden
+        catch (BadHttpRequestException ex) { return BadRequest(new { message = ex.Message }); }
+    }
 }

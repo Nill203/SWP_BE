@@ -3,13 +3,13 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using BloodDonationBE.Features.Users.DTOs; // Sửa using
+using BloodDonationBE.Features.Users.DTOs;
 using BloodDonationBE.Data;
 using BloodDonationBE.Common.Enums;
 using BloodDonationBE.Services;
 using System.Security.Cryptography;
+using User = BloodDonationBE.Features.Users.User;
 
-// ==> SỬA NAMESPACE THÀNH SỐ NHIỀU
 namespace BloodDonationBE.Features.Users;
 
 public class UserService : IUserService
@@ -36,8 +36,14 @@ public class UserService : IUserService
 
         var token = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
         _pendingUserStore.AddPendingUser(token, dto);
-
-        var confirmUrl = $"http://your-frontend-url/confirm-registration?token={token}";
+        
+        var frontendBaseUrl = _configuration["FrontendSettings:BaseUrl"];
+        if (string.IsNullOrEmpty(frontendBaseUrl))
+        {
+            throw new InvalidOperationException("Chưa cấu hình 'FrontendSettings:BaseUrl' trong appsettings.json");
+        }
+        
+        var confirmUrl = $"{frontendBaseUrl}/xac-thuc/{token}";
         var emailBody = $"Vui lòng nhấn vào link sau để xác nhận đăng ký: <a href='{confirmUrl}'>Xác nhận</a>";
         await _mailService.SendMailAsync(dto.Email, "Xác nhận đăng ký tài khoản", emailBody);
 
@@ -58,14 +64,23 @@ public class UserService : IUserService
             return "Tài khoản đã được xác nhận trước đó.";
         }
 
-        var user = new User // Giờ sẽ không còn lỗi
+        // --- BẮT ĐẦU PHẦN CẬP NHẬT ---
+        var user = new User
         {
             FullName = pendingUserData.FullName,
             Email = pendingUserData.Email,
             PhoneNumber = pendingUserData.PhoneNumber,
             Password = BCrypt.Net.BCrypt.HashPassword(pendingUserData.Password),
-            Role = UserRole.Member
+            Role = UserRole.Member,
+            // Ánh xạ các trường mới từ DTO
+            Address = pendingUserData.Address,
+            Birthday = pendingUserData.Birthday,
+            Gender = pendingUserData.Gender,
+            // Mặc định nhóm máu là 'None' và trạng thái sẵn sàng là 'Available'
+            BloodType = BloodType.None,
+            AvailabilityStatus = AvailabilityStatus.Available,
         };
+        // --- KẾT THÚC PHẦN CẬP NHẬT ---
 
         await _context.Users.AddAsync(user);
         await _context.SaveChangesAsync();
@@ -73,6 +88,7 @@ public class UserService : IUserService
         return "Xác thực tài khoản thành công!";
     }
 
+    // ... các phương thức khác không thay đổi ...
     public async Task<LoginResponseDto> LoginAsync(LoginDto dto)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
@@ -108,7 +124,7 @@ public class UserService : IUserService
             Address = dto.Address,
             Birthday = dto.Birthday,
             Gender = dto.Gender,
-            BloodType = dto.BloodType ?? BloodType.None, // Sửa lại cho gọn
+            BloodType = dto.BloodType ?? BloodType.None,
             Lat = dto.Lat,
             Lng = dto.Lng
         };
@@ -136,7 +152,7 @@ public class UserService : IUserService
             Address = dto.Address,
             Gender = dto.Gender,
             Birthday = dto.Birthday,
-            BloodType = dto.BloodType ?? BloodType.None, // Sửa lại cho gọn
+            BloodType = dto.BloodType ?? BloodType.None,
             Lat = dto.Lat,
             Lng = dto.Lng
         };
@@ -160,7 +176,7 @@ public class UserService : IUserService
     public async Task<IEnumerable<UserResponseDto>> GetAllUsersAsync()
     {
         var users = await _context.Users.ToListAsync();
-        return users.Select(user => UserResponseDto.FromEntity(user)); // Sửa lại cho rõ ràng
+        return users.Select(user => UserResponseDto.FromEntity(user));
     }
 
     public async Task<UserResponseDto> UpdateUserAsync(int id, UserUpdateDto dto)
@@ -202,7 +218,6 @@ public class UserService : IUserService
         await _context.SaveChangesAsync();
     }
     
-    // --- Private Helper Methods ---
     private string GenerateJwtToken(User user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();

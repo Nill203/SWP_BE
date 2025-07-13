@@ -12,6 +12,7 @@ public class RegistrationUserDto
     public int UserId { get; set; }
     public string UserName { get; set; } = string.Empty;
     public string Phone { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
     public BloodType BloodType { get; set; }
     public UserRole Role { get; set; }
 }
@@ -69,6 +70,7 @@ public class RegistrationResponseDto
                 UserId = registration.User.UserId,
                 UserName = registration.User.FullName,
                 Phone = registration.User.PhoneNumber,
+                Email = registration.User.Email,
                 BloodType = registration.User.BloodType,
                 Role = registration.User.Role
             }

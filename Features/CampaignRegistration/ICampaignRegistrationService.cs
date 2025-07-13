@@ -28,4 +28,14 @@ public interface ICampaignRegistrationService
     /// Lấy lịch sử hiến máu của một người dùng.
     /// </summary>
     Task<IEnumerable<DonationHistoryResponseDto>> GetDonationHistoryByUserIdAsync(int userId);
+
+    /// <summary>
+    /// Lấy danh sách các sự kiện mà người dùng hiện tại đã đăng ký.
+    /// </summary>
+    Task<IEnumerable<RegistrationResponseDto>> GetMyRegistrationsAsync(int userId);
+
+    /// <summary>
+    /// Người dùng tự hủy lượt đăng ký của chính mình.
+    /// </summary>
+    Task<RegistrationResponseDto> CancelRegistrationAsync(int registrationId, int userId);
 }
