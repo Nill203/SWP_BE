@@ -12,17 +12,16 @@ using BloodDonationBE.Features.BloodDonationCampaigns;
 using BloodDonationBE.Features.CampaignRegistrations;
 using BloodDonationBE.Features.BloodUnits;
 using BloodDonationBE.Features.Hospitals;
-using BloodDonationBE.Features.BloodRequests; // <-- QUAN TRỌNG: Thêm using cho module mới
+using BloodDonationBE.Features.BloodRequests; 
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- 1. Cấu hình Database Context (MySQL) ---
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
 );
 
-// --- 2. Đăng ký các dịch vụ tùy chỉnh ---
+
 builder.Services.AddUserServices();
 builder.Services.AddBloodDonationCampaignServices();
 builder.Services.AddCampaignRegistrationServices();
@@ -30,7 +29,7 @@ builder.Services.AddBloodUnitServices();
 builder.Services.AddHospitalServices();
 builder.Services.AddBloodRequestServices();
 
-// --- 3. Cấu hình xác thực JWT (JSON Web Token) ---
+
 var jwtKey = builder.Configuration["Jwt:Key"];
 if (string.IsNullOrEmpty(jwtKey))
 {
@@ -56,21 +55,16 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Thêm các dịch vụ vào container.
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        // Chuyển đổi Enums thành chuỗi trong các phản hồi API để dễ đọc hơn
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
-// --- 4. Cấu hình Swagger để hỗ trợ JWT ---
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "BloodDonationBE API", Version = "v1" });
-
-    // Định nghĩa scheme "Bearer" cho việc xác thực
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header. Ví dụ: \"Authorization: Bearer {token}\"",
@@ -80,7 +74,6 @@ builder.Services.AddSwaggerGen(options =>
         Scheme = "Bearer"
     });
 
-    // Yêu cầu Swagger sử dụng scheme xác thực đã định nghĩa
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -97,8 +90,6 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// --- 5. Thêm chính sách CORS ---
-// Cho phép frontend của bạn gọi đến API này
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll",
@@ -111,8 +102,6 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
-
-// Cấu hình pipeline xử lý HTTP request.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -120,15 +109,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-// --- 6. Sử dụng CORS ---
 app.UseCors("AllowAll");
-
-// --- 7. Sử dụng Authentication và Authorization ---
-// UseAuthentication phải được gọi trước UseAuthorization
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();

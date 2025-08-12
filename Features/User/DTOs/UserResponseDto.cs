@@ -1,7 +1,6 @@
 using BloodDonationBE.Common.Enums;
 using BloodDonationBE.Features.Users;
 
-// Đổi namespace của DTO để nhất quán với namespace của Entity
 namespace BloodDonationBE.Features.Users.DTOs;
 
 public class UserResponseDto
@@ -18,8 +17,12 @@ public class UserResponseDto
     public string? AvatarImage { get; set; }
     public decimal? Lat { get; set; }
     public decimal? Lng { get; set; }
+    public bool IsAvailable { get; set; }
+    public string? AvailabilityStatusMessage { get; set; }
+    public DateTime? NextAvailableDonationDate { get; set; }
+    public BloodProductType? LastDonationType { get; set; }
 
-    public static UserResponseDto FromEntity(User user) // Giờ sẽ không còn lỗi
+    public static UserResponseDto FromEntity(User user, UserAvailabilityDto? availability = null)
     {
         return new UserResponseDto
         {
@@ -34,7 +37,11 @@ public class UserResponseDto
             Birthday = user.Birthday,
             AvatarImage = user.AvatarImage,
             Lat = user.Lat,
-            Lng = user.Lng
+            Lng = user.Lng,
+            IsAvailable = availability?.IsAvailable ?? true,
+            AvailabilityStatusMessage = availability?.StatusMessage ?? "Sẵn sàng hiến máu.",
+            NextAvailableDonationDate = availability?.NextAvailableDate,
+            LastDonationType = availability?.LastDonationType
         };
     }
 }

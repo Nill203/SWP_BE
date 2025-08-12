@@ -7,7 +7,7 @@ using System.Security.Claims;
 namespace BloodDonationBE.Features.Users;
 
 [ApiController]
-[Route("api/users")] // Tiền tố chung cho tất cả các API trong controller này
+[Route("api/users")]
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
@@ -17,10 +17,8 @@ public class UsersController : ControllerBase
         _userService = userService;
     }
 
-    // --- Endpoints công khai (Public) ---
-
     [HttpPost("register")]
-    [AllowAnonymous] // Bất kỳ ai cũng có thể gọi API này
+    [AllowAnonymous] 
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
         try
@@ -64,13 +62,11 @@ public class UsersController : ControllerBase
         }
     }
 
-    // --- Endpoints yêu cầu xác thực ---
 
     [HttpGet("me")]
-    [Authorize] // Yêu cầu người dùng phải đăng nhập (có JWT token hợp lệ)
+    [Authorize]
     public async Task<IActionResult> GetCurrentUser()
     {
-        // Lấy UserId từ token và kiểm tra null
         var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out var userId))
         {
@@ -85,7 +81,6 @@ public class UsersController : ControllerBase
     [Authorize]
     public async Task<IActionResult> UpdateCurrentUser([FromBody] UserUpdateDto dto)
     {
-        // Lấy UserId từ token và kiểm tra null
         var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out var userId))
         {
@@ -111,11 +106,8 @@ public class UsersController : ControllerBase
         }
     }
 
-
-    // --- Endpoints yêu cầu quyền Admin/Staff ---
-
     [HttpGet]
-    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Staff)}")] // Chỉ Admin hoặc Staff
+    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Staff)}")] 
     public async Task<IActionResult> GetAllUsers()
     {
         var users = await _userService.GetAllUsersAsync();
@@ -146,13 +138,13 @@ public class UsersController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = nameof(UserRole.Admin))] // Chỉ Admin
+    [Authorize(Roles = nameof(UserRole.Admin))]
     public async Task<IActionResult> DeleteUser(int id)
     {
         try
         {
             await _userService.DeleteUserAsync(id);
-            return NoContent(); // Trả về 204 No Content khi xóa thành công
+            return NoContent(); 
         }
         catch (KeyNotFoundException ex)
         {
@@ -161,7 +153,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpPost("staff/create")]
-    [Authorize(Roles = nameof(UserRole.Admin))] // Chỉ Admin
+    [Authorize(Roles = nameof(UserRole.Admin))]
     public async Task<IActionResult> CreateStaff([FromBody] CreateStaffDto dto)
     {
         try
@@ -172,6 +164,21 @@ public class UsersController : ControllerBase
         catch (BadHttpRequestException ex)
         {
             return BadRequest(new { message = ex.Message });
+        }
+    }
+
+        [HttpGet("{id}/availability")]
+    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Staff)}")]
+    public async Task<IActionResult> GetUserAvailability(int id)
+    {
+        try
+        {
+            var availabilityStatus = await _userService.GetUserAvailabilityStatusAsync(id);
+            return Ok(availabilityStatus);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
         }
     }
 }

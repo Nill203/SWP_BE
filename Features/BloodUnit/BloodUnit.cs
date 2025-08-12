@@ -41,8 +41,6 @@ public class BloodUnit
     [Column(TypeName = "date")]
     public DateTime? IssueDate { get; set; }
 
-    // --- Foreign Keys và Navigation Properties ---
-
     public int? RegistrationId { get; set; }
     [ForeignKey(nameof(RegistrationId))]
     public CampaignRegistration? Registration { get; set; }

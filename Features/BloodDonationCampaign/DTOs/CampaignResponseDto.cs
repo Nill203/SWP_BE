@@ -1,6 +1,4 @@
 using BloodDonationBE.Common.Enums;
-
-// ==> Đảm bảo namespace là số nhiều: ...Campaigns.DTOs
 namespace BloodDonationBE.Features.BloodDonationCampaigns.DTOs;
 
 public class CampaignResponseDto

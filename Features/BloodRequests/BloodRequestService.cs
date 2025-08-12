@@ -76,11 +76,11 @@ public class BloodRequestService : IBloodRequestService
 
         if (availableUnitsCount < request.Quantity)
         {
-            request.Status = BloodRequestStatus.PendingAppeal; // Không đủ máu, chuyển sang chờ kêu gọi
+            request.Status = BloodRequestStatus.PendingAppeal; 
         }
         else
         {
-            request.Status = BloodRequestStatus.Approved; // Đủ máu, phê duyệt
+            request.Status = BloodRequestStatus.Approved;
         }
 
         request.ApprovingAdminId = adminId;
@@ -93,7 +93,7 @@ public class BloodRequestService : IBloodRequestService
     public async Task<RequestResponseDto> FulfillRequestAsync(int requestId, int adminOrStaffId)
     {
         var request = await FindRequestEntityByIdAsync(requestId);
-        if (request.Status != BloodRequestStatus.Approved)
+        if (request.Status != BloodRequestStatus.Approved && request.Status != BloodRequestStatus.PendingAppeal)
         {
             throw new BadHttpRequestException($"Chỉ có thể hoàn thành yêu cầu ở trạng thái 'Approved'.");
         }
@@ -167,7 +167,7 @@ public class BloodRequestService : IBloodRequestService
         }
 
         request.Status = BloodRequestStatus.Rejected;
-        request.VerifiedAt = DateTime.UtcNow; // Ghi nhận thời điểm hành động
+        request.VerifiedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
         return RequestResponseDto.FromEntity(request);

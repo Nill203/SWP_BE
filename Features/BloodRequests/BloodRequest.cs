@@ -32,13 +32,10 @@ public class BloodRequest
     [Required]
     public BloodRequestStatus Status { get; set; } = BloodRequestStatus.Pending;
 
-    // Timestamps for tracking
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? VerifiedAt { get; set; }
     public DateTime? ApprovedAt { get; set; }
     public DateTime? FulfilledAt { get; set; }
-
-    // --- Foreign Keys và Navigation Properties ---
 
     [Required]
     public int HospitalId { get; set; }

@@ -7,7 +7,7 @@ using BloodDonationBE.Features.BloodDonationCampaigns;
 namespace BloodDonationBE.Features.Hospitals;
 
 [Table("hospitals")]
-[Index(nameof(Name), IsUnique = true)] // Tạo index để đảm bảo tên bệnh viện là duy nhất
+[Index(nameof(Name), IsUnique = true)]
 public class Hospital
 {
     [Key]
@@ -25,7 +25,5 @@ public class Hospital
     [Column("contact_info")]
     public string? ContactInfo { get; set; }
 
-    // Mối quan hệ Một-Nhiều: Một bệnh viện có thể tổ chức nhiều sự kiện hiến máu
-    // Giờ đây, trình biên dịch sẽ hiểu đúng BloodDonationCampaign là một lớp
     public ICollection<BloodDonationCampaign> Campaigns { get; set; } = new List<BloodDonationCampaign>();
 }

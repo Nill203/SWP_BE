@@ -4,28 +4,18 @@ using BloodDonationBE.Features.Hospitals;
 using BloodDonationBE.Features.Users;
 
 namespace BloodDonationBE.Features.BloodUnits.DTOs;
-
-/// <summary>
-/// DTO chứa thông tin tóm tắt của một người dùng (người hiến hoặc người xác minh).
-/// </summary>
 public class BloodUnitUserDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
 }
 
-/// <summary>
-/// DTO chứa thông tin tóm tắt của bệnh viện.
-/// </summary>
 public class BloodUnitHospitalDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
 }
 
-/// <summary>
-/// DTO chính để trả về thông tin chi tiết của một đơn vị máu.
-/// </summary>
 public class BloodUnitResponseDto
 {
     public int Id { get; set; }
@@ -36,15 +26,10 @@ public class BloodUnitResponseDto
     public BloodUnitStatus Status { get; set; }
     public BloodProductType ProductType { get; set; }
     public DateTime? IssueDate { get; set; }
-
-    // Thông tin từ các bảng liên quan
     public BloodUnitHospitalDto? Hospital { get; set; }
     public BloodUnitUserDto? Donor { get; set; }
     public BloodUnitUserDto? Verifier { get; set; }
 
-    /// <summary>
-    /// Phương thức tĩnh để tạo một DTO từ một entity BloodUnit.
-    /// </summary>
     public static BloodUnitResponseDto FromEntity(BloodUnit bloodUnit)
     {
         return new BloodUnitResponseDto

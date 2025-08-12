@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using BloodDonationBE.Features.CampaignRegistrations;
 using BloodDonationBE.Features.Hospitals;
-// using BloodDonationBE.Features.Users; // <-- XÓA DÒNG NÀY VÌ KHÔNG CẦN THIẾT
 
 namespace BloodDonationBE.Features.BloodDonationCampaigns;
 
@@ -23,10 +22,6 @@ public class BloodDonationCampaign
     [Column(TypeName = "date")]
     public DateTime ActiveTime { get; set; }
 
-    /// <summary>
-    /// Lưu trữ các khung giờ có thể hiến máu dưới dạng một chuỗi JSON.
-    /// Ví dụ: "[{\"start\":\"08:00\",\"end\":\"11:00\"},{\"start\":\"13:00\",\"end\":\"16:00\"}]"
-    /// </summary>
     [Column(TypeName = "json")]
     public string DonateTime { get; set; } = string.Empty;
 
@@ -44,10 +39,8 @@ public class BloodDonationCampaign
     [Required]
     public int HospitalId { get; set; }
 
-    // Mối quan hệ Nhiều-Một: Nhiều sự kiện thuộc về một bệnh viện
     [ForeignKey(nameof(HospitalId))]
     public Hospital Hospital { get; set; } = null!;
 
-    // Mối quan hệ Một-Nhiều: Một sự kiện có nhiều lượt đăng ký
     public ICollection<CampaignRegistration> Registrations { get; set; } = new List<CampaignRegistration>();
 }

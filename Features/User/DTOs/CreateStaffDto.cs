@@ -20,14 +20,9 @@ public class CreateStaffDto
     [MinLength(6)]
     public string Password { get; set; }
 
-    /// <summary>
-    /// Chỉ cho phép tạo vai trò là Staff hoặc Admin.
-    /// </summary>
     [Required]
     [Range(typeof(UserRole), nameof(UserRole.Staff), nameof(UserRole.Admin), ErrorMessage = "Vai trò chỉ có thể là Staff hoặc Admin.")]
     public UserRole Role { get; set; }
-    
-    // Các trường không bắt buộc
     public string? Address { get; set; }
     public Gender? Gender { get; set; }
     public DateTime? Birthday { get; set; }

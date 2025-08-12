@@ -2,9 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using BloodDonationBE.Data;
 using BloodDonationBE.Features.BloodDonationCampaigns.DTOs;
 using BloodDonationBE.Common.Enums;
-using BloodDonationBE.Features.Hospitals; // <-- Sửa lại namespace cho Hospital
 
-// ==> Đảm bảo namespace là số nhiều
 namespace BloodDonationBE.Features.BloodDonationCampaigns;
 
 public class BloodDonationCampaignService : IBloodDonationCampaignService
@@ -115,7 +113,6 @@ public class BloodDonationCampaignService : IBloodDonationCampaignService
         return campaigns.Select(c => ToCampaignResponseDto(c));
     }
 
-    // --- Private Helper Methods ---
 
     private CampaignResponseDto ToCampaignResponseDto(BloodDonationCampaign campaign)
     {

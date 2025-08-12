@@ -25,10 +25,8 @@ public class RequiredIfAttribute : ValidationAttribute
 
         var dependentPropertyValue = dependentPropertyInfo.GetValue(validationContext.ObjectInstance);
 
-        // Nếu giá trị của thuộc tính phụ thuộc khớp với giá trị mục tiêu...
         if (Equals(dependentPropertyValue, _targetValue))
         {
-            // ...thì kiểm tra xem thuộc tính hiện tại có giá trị hay không.
             if (value == null)
             {
                 return new ValidationResult(ErrorMessage ?? $"{validationContext.DisplayName} is required.");

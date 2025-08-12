@@ -9,9 +9,6 @@ public class HospitalResponseDto
     public string Address { get; set; } = string.Empty;
     public string? ContactInfo { get; set; }
 
-    /// <summary>
-    /// Phương thức tĩnh để tạo một DTO từ một entity Hospital.
-    /// </summary>
     public static HospitalResponseDto FromEntity(Hospital hospital)
     {
         return new HospitalResponseDto

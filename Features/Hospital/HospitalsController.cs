@@ -18,7 +18,7 @@ public class HospitalsController : ControllerBase
 
     // POST: api/hospitals
     [HttpPost]
-    [Authorize(Roles = nameof(UserRole.Admin))] // Chỉ Admin được tạo bệnh viện mới
+    [Authorize(Roles = nameof(UserRole.Admin))] 
     public async Task<IActionResult> CreateHospital([FromBody] CreateHospitalDto dto)
     {
         try
@@ -28,13 +28,13 @@ public class HospitalsController : ControllerBase
         }
         catch (BadHttpRequestException ex)
         {
-            return Conflict(new { message = ex.Message }); // Trả về 409 Conflict nếu tên đã tồn tại
+            return Conflict(new { message = ex.Message });
         }
     }
 
     // GET: api/hospitals
     [HttpGet]
-    [AllowAnonymous] // Cho phép tất cả mọi người xem danh sách bệnh viện
+    [AllowAnonymous]
     public async Task<IActionResult> GetAllHospitals()
     {
         var hospitals = await _hospitalService.GetAllHospitalsAsync();

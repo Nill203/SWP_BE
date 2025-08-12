@@ -24,7 +24,6 @@ public class BloodUnitService : IBloodUnitService
 
         if (registration == null || !registration.Volume.HasValue)
         {
-            // Ghi log lỗi ở đây nếu cần
             return;
         }
 
@@ -33,7 +32,7 @@ public class BloodUnitService : IBloodUnitService
             BloodType = registration.User.BloodType,
             Volume = registration.Volume.Value,
             DonationDate = registration.Campaign.ActiveTime,
-            ExpiryDate = CalculateExpiryDate(registration.Campaign.ActiveTime),
+            ExpiryDate = CalculateExpiryDate(registration.Campaign.ActiveTime, registration.ProductType),
             Status = BloodUnitStatus.AwaitingTesting,
             ProductType = registration.ProductType,
             RegistrationId = registration.Id,
@@ -45,25 +44,26 @@ public class BloodUnitService : IBloodUnitService
         await _context.SaveChangesAsync();
     }
 
-    public async Task<BloodUnitResponseDto> CreateManualAsync(ManualCreateBloodUnitDto dto)
+public async Task<BloodUnitResponseDto> CreateManualAsync(ManualCreateBloodUnitDto dto)
+{
+    var bloodUnit = new BloodUnit
     {
-        var bloodUnit = new BloodUnit
-        {
-            DonorId = dto.DonorId,
-            HospitalId = dto.HospitalId,
-            BloodType = dto.BloodType,
-            Volume = dto.Volume,
-            DonationDate = dto.DonationDate,
-            ProductType = dto.ProductType ?? BloodProductType.WholeBlood,
-            ExpiryDate = CalculateExpiryDate(dto.DonationDate),
-            Status = BloodUnitStatus.AwaitingTesting
-        };
+        DonorId = dto.DonorId,
+        HospitalId = dto.HospitalId,
+        BloodType = dto.BloodType,
+        Volume = dto.Volume,
+        DonationDate = dto.DonationDate,
+        ProductType = dto.ProductType ?? BloodProductType.WholeBlood,
+        ExpiryDate = CalculateExpiryDate(dto.DonationDate, dto.ProductType ?? BloodProductType.WholeBlood),
+        
+        Status = BloodUnitStatus.AwaitingTesting
+    };
 
-        await _context.BloodUnits.AddAsync(bloodUnit);
-        await _context.SaveChangesAsync();
+    await _context.BloodUnits.AddAsync(bloodUnit);
+    await _context.SaveChangesAsync();
 
-        return await GetByIdAsync(bloodUnit.Id);
-    }
+    return await GetByIdAsync(bloodUnit.Id);
+}
 
     public async Task<BloodUnitResponseDto> UpdateStatusAsync(int id, UpdateBloodUnitDto dto, int verifierId)
     {
@@ -100,7 +100,7 @@ public class BloodUnitService : IBloodUnitService
             .Include(u => u.Registration)
                 .ThenInclude(r => r.User)
             .ToListAsync();
-        
+
         return units.Select(BloodUnitResponseDto.FromEntity);
     }
 
@@ -129,8 +129,22 @@ public class BloodUnitService : IBloodUnitService
         return unit;
     }
 
-    private DateTime CalculateExpiryDate(DateTime donationDate)
+    private DateTime CalculateExpiryDate(DateTime donationDate, BloodProductType productType)
     {
-        return donationDate.AddDays(42);
+        switch (productType)
+        {
+            case BloodProductType.WholeBlood:
+            case BloodProductType.RedCells:
+                return donationDate.AddDays(35);
+
+            case BloodProductType.Platelets:
+                return donationDate.AddDays(5); 
+
+            case BloodProductType.Plasma:
+                return donationDate.AddYears(1);
+
+            default:
+                return donationDate.AddDays(35);
+        }
     }
 }

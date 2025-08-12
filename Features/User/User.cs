@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using BloodDonationBE.Common.Enums;
+using BloodDonationBE.Features.CampaignRegistrations;
 
 namespace BloodDonationBE.Features.Users;
 
@@ -57,17 +58,9 @@ public class User
     public bool IsVerified { get; set; } = false;
     public string? VerificationToken { get; set; }
 
-    // --- CÁC TRƯỜNG MỚI ĐƯỢC BỔ SUNG ---
-
-    /// <summary>
-    /// Trạng thái sẵn sàng hiến máu của người dùng.
-    /// </summary>
     [Required]
     public AvailabilityStatus AvailabilityStatus { get; set; } = AvailabilityStatus.Available;
 
-    /// <summary>
-    /// Ngày hiến máu cuối cùng của người dùng.
-    /// </summary>
-    [Column(TypeName = "date")]
-    public DateTime? LastDonationDate { get; set; }
+    public virtual ICollection<CampaignRegistration> CampaignRegistrations { get; set; } = new List<CampaignRegistration>();
 }
+

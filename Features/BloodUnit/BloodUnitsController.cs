@@ -44,7 +44,7 @@ public class BloodUnitsController : ControllerBase
 
     // POST: api/blood-units/manual-create
     [HttpPost("manual-create")]
-    [Authorize(Roles = nameof(UserRole.Admin))] // Chỉ Admin được tạo thủ công
+    [Authorize(Roles = nameof(UserRole.Admin))] 
     public async Task<IActionResult> CreateManualBloodUnit([FromBody] ManualCreateBloodUnitDto dto)
     {
         var createdUnit = await _bloodUnitService.CreateManualAsync(dto);

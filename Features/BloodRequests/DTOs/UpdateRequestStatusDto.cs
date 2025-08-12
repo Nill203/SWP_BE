@@ -3,7 +3,7 @@ using BloodDonationBE.Features.BloodRequests;
 
 namespace BloodDonationBE.Features.BloodRequests.DTOs;
 
-// DTO phụ để chứa thông tin tóm tắt
+
 public class RequestUserDto
 {
     public int UserId { get; set; }
@@ -18,9 +18,6 @@ public class RequestHospitalDto
 }
 
 
-/// <summary>
-/// DTO chính để trả về thông tin chi tiết của một yêu cầu máu.
-/// </summary>
 public class RequestResponseDto
 {
     public int Id { get; set; }
@@ -34,16 +31,11 @@ public class RequestResponseDto
     public DateTime? VerifiedAt { get; set; }
     public DateTime? ApprovedAt { get; set; }
     public DateTime? FulfilledAt { get; set; }
-
-    // Thông tin từ các bảng liên quan
     public RequestHospitalDto Hospital { get; set; } = null!;
     public RequestUserDto RequestingUser { get; set; } = null!;
     public RequestUserDto? VerifyingStaff { get; set; }
     public RequestUserDto? ApprovingAdmin { get; set; }
 
-    /// <summary>
-    /// Phương thức tĩnh để tạo một DTO từ một entity BloodRequest.
-    /// </summary>
     public static RequestResponseDto FromEntity(BloodRequest request)
     {
         return new RequestResponseDto

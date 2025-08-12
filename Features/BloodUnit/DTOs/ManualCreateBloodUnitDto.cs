@@ -3,9 +3,6 @@ using BloodDonationBE.Common.Enums;
 
 namespace BloodDonationBE.Features.BloodUnits.DTOs;
 
-/// <summary>
-/// DTO được sử dụng khi Admin tạo một đơn vị máu thủ công.
-/// </summary>
 public class ManualCreateBloodUnitDto
 {
     [Required]

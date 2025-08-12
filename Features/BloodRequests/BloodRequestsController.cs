@@ -110,7 +110,7 @@ public class BloodRequestsController : ControllerBase
     }
 
     [HttpGet("me")]
-    [Authorize] // Bất kỳ ai đăng nhập cũng có thể xem yêu cầu của mình
+    [Authorize]
     public async Task<IActionResult> GetMyRequests()
     {
         var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -123,11 +123,9 @@ public class BloodRequestsController : ControllerBase
         return Ok(requests);
     }
 
-    /// <summary>
-    /// Người dùng tự hủy một yêu cầu máu.
-    /// </summary>
+
     [HttpPatch("{id}/cancel")]
-    [Authorize] // Bất kỳ ai đăng nhập cũng có thể gọi, logic bảo mật ở service
+    [Authorize]
     public async Task<IActionResult> CancelRequest(int id)
     {
         try
@@ -142,7 +140,7 @@ public class BloodRequestsController : ControllerBase
             return Ok(result);
         }
         catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
-        catch (UnauthorizedAccessException) { return Forbid(); } // Trả về 403 Forbidden
+        catch (UnauthorizedAccessException) { return Forbid(); }
         catch (BadHttpRequestException ex) { return BadRequest(new { message = ex.Message }); }
     }
 }
